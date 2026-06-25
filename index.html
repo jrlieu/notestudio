@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>Voice Notes Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        .app {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 32px 80px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 36px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .header-left i {
+            font-size: 32px;
+            color: #6366f1;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            letter-spacing: -0.5px;
+        }
+
+        .header h1 span {
+            font-weight: 300;
+            color: #94a3b8;
+            font-size: 20px;
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+        }
+
+        .add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+        }
+
+        .add-btn:active {
+            transform: scale(0.96);
+        }
+
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .note-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 22px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e9edf2;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            min-height: 100px;
+        }
+
+        .note-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border-color: #d1d5db;
+        }
+
+        .note-card:active {
+            transform: scale(0.97);
+        }
+
+        .note-card-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+
+        .note-card-meta {
+            font-size: 13px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .note-card-meta i {
+            font-size: 12px;
+        }
+
+        .note-card-preview {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #64748b;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .note-card .card-arrow {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #cbd5e1;
+            font-size: 20px;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 80px 20px;
+            background: white;
+            border-radius: 16px;
+            border: 2px dashed #e2e8f0;
+        }
+
+        .empty-state i {
+            font-size: 56px;
+            color: #cbd5e1;
+            margin-bottom: 16px;
+        }
+
+        .empty-state p {
+            color: #94a3b8;
+            font-size: 16px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #f8fafc;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .overlay.open {
+            transform: translateX(0);
+        }
+
+        .overlay-header {
+            background: white;
+            padding: 16px 32px;
+            border-bottom: 1px solid #e9edf2;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: #6366f1;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: 0.15s;
+        }
+
+        .back-btn:hover {
+            color: #4f46e5;
+        }
+
+        .back-btn span {
+            font-size: 15px;
+        }
+
+        .overlay-title-input {
+            flex: 1;
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e293b;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 8px 0;
+            border-bottom: 2px solid transparent;
+            transition: 0.15s;
+        }
+
+        .overlay-title-input:focus {
+            border-bottom-color: #6366f1;
+        }
+
+        .overlay-title-input::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        .overlay-delete-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px;
+            opacity: 0.5;
+            transition: 0.15s;
+        }
+
+        .overlay-delete-btn:hover {
+            opacity: 1;
+        }
+
+        .overlay-body {
+            flex: 1;
+            padding: 32px 40px 40px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .overlay-body::-webkit-scrollbar {
+            width: 6px;
+        }
+        .overlay-body::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 20px;
+        }
+
+        .text-section {
+            background: white;
+            border-radius: 16px;
+            padding: 4px;
+            border: 1px solid #e9edf2;
+            transition: 0.15s;
+        }
+
+        .text-section:focus-within {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .text-section .section-label {
+            padding: 14px 18px 0;
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .text-section .section-label i {
+            margin-right: 6px;
+        }
+
+        .note-textarea {
+            width: 100%;
+            min-height: 200px;
+            background: transparent;
+            border: none;
+            padding: 8px 18px 18px;
+            font-size: 16px;
+            line-height: 1.8;
+            color: #1e293b;
+            resize: vertical;
+            outline: none;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .note-textarea::placeholder {
+            color: #94a3b8;
+        }
+
+        .save-indicator {
+            font-size: 12px;
+            color: #94a3b8;
+            text-align: right;
+            padding: 4px 18px 12px;
+            opacity: 0.6;
+        }
+
+        .save-indicator i {
+            margin-right: 4px;
+        }
+
+        .audio-section {
+            background: white;
+            border-radius: 16px;
+            padding: 18px;
+            border: 1px solid #e9edf2;
+        }
+
+        .audio-section .section-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 14px;
+        }
+
+        .audio-section .section-label i {
+            margin-right: 6px;
+        }
+
+        .audio-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f8fafc;
+            padding: 10px 16px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            border: 1px solid #e9edf2;
+            transition: 0.15s;
+        }
+
+        .audio-item:hover {
+            background: #f1f5f9;
+        }
+
+        .audio-item .audio-icon {
+            color: #6366f1;
+            font-size: 16px;
+            width: 24px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .audio-name {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            color: #1e293b;
+            outline: none;
+            padding: 6px 0;
+            border-bottom: 1px dashed #d1d5db;
+            transition: 0.1s;
+            min-width: 60px;
+        }
+
+        .audio-name:focus {
+            border-bottom-color: #6366f1;
+            border-bottom-style: solid;
+        }
+
+        .audio-name::placeholder {
+            color: #94a3b8;
+        }
+
+        .audio-duration {
+            font-size: 12px;
+            color: #94a3b8;
+            font-variant-numeric: tabular-nums;
+            min-width: 44px;
+            text-align: center;
+            flex-shrink: 0;
+            font-weight: 500;
+        }
+
+        .audio-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .audio-play {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            color: white;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+        }
+
+        .audio-play:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+        }
+
+        .audio-play:active {
+            transform: scale(0.92);
+        }
+
+        .audio-play.playing {
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
+        }
+
+        .audio-delete {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px 6px;
+            transition: 0.15s;
+            opacity: 0.4;
+        }
+
+        .audio-delete:hover {
+            color: #ef4444;
+            opacity: 1;
+        }
+
+        .no-audio {
+            text-align: center;
+            color: #94a3b8;
+            padding: 24px;
+            font-size: 14px;
+        }
+
+        .no-audio i {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 8px;
+            color: #cbd5e1;
+        }
+
+        .record-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 40px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 2px 12px rgba(239, 68, 68, 0.25);
+            margin-top: 4px;
+        }
+
+        .record-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.35);
+        }
+
+        .record-btn:active {
+            transform: scale(0.97);
+        }
+
+        .record-btn.recording {
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            animation: pulse 1.2s infinite;
+            box-shadow: 0 2px 12px rgba(245, 158, 11, 0.4);
+        }
+
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .status {
+            text-align: center;
+            font-size: 13px;
+            color: #94a3b8;
+            padding: 8px 0;
+            min-height: 28px;
+        }
+
+        .floating-actions {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 500;
+        }
+
+        .floating-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: white;
+            color: #6366f1;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .floating-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+        }
+
+        .floating-btn:active {
+            transform: scale(0.92);
+        }
+
+        .floating-btn .tooltip {
+            position: absolute;
+            right: 58px;
+            background: #1e293b;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.15s;
+            font-weight: 500;
+        }
+
+        .floating-btn:hover .tooltip {
+            opacity: 1;
+        }
+
+        .floating-btn .tooltip::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-left: 6px solid #1e293b;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+        }
+
+        @media (max-width: 768px) {
+            .app {
+                padding: 20px 16px 80px;
+            }
+
+            .header {
+                flex-wrap: wrap;
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .header h1 span {
+                font-size: 16px;
+            }
+
+            .add-btn {
+                padding: 10px 18px;
+                font-size: 14px;
+            }
+
+            .notes-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .overlay-header {
+                padding: 12px 16px;
+            }
+
+            .overlay-title-input {
+                font-size: 18px;
+            }
+
+            .overlay-body {
+                padding: 16px;
+                gap: 16px;
+            }
+
+            .note-textarea {
+                min-height: 150px;
+                font-size: 15px;
+            }
+
+            .back-btn span {
+                display: none;
+            }
+
+            .audio-item {
+                flex-wrap: wrap;
+                gap: 8px;
+                padding: 10px 12px;
+            }
+
+            .audio-name {
+                min-width: 40px;
+                font-size: 13px;
+            }
+
+            .floating-actions {
+                bottom: 16px;
+                right: 16px;
+            }
+
+            .floating-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 17px;
+            }
+
+            .floating-btn .tooltip {
+                display: none;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .notes-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app">
+        <div class="header">
+            <div class="header-left">
+                <i class="fas fa-pen-fancy"></i>
+                <h1>Notes <span>· Studio</span></h1>
+            </div>
+            <button class="add-btn" id="addNote">
+                <i class="fas fa-plus"></i> New Note
+            </button>
+        </div>
+
+        <div class="notes-grid" id="notesList"></div>
+    </div>
+
+    <div class="floating-actions">
+        <button class="floating-btn" id="exportBtn">
+            <i class="fas fa-file-export"></i>
+            <span class="tooltip">Export Backup</span>
+        </button>
+        <button class="floating-btn" id="importBtn">
+            <i class="fas fa-file-import"></i>
+            <span class="tooltip">Import Backup</span>
+        </button>
+    </div>
+
+    <div class="overlay" id="overlay">
+        <div class="overlay-header">
+            <button class="back-btn" id="backBtn">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back</span>
+            </button>
+            <input class="overlay-title-input" id="overlayTitle" placeholder="Note title" />
+            <button class="overlay-delete-btn" id="overlayDelete">
+                <i class="fas fa-minus"></i>
+            </button>
+        </div>
+        <div class="overlay-body">
+            <div class="text-section">
+                <div class="section-label"><i class="fas fa-pencil-alt"></i> Notes</div>
+                <textarea class="note-textarea" id="noteText" placeholder="Start writing..."></textarea>
+                <div class="save-indicator" id="saveIndicator">
+                    <i class="fas fa-check-circle"></i> All changes saved
+                </div>
+            </div>
+
+            <div class="audio-section">
+                <div class="section-label"><i class="fas fa-microphone"></i> Audio</div>
+                <div id="audioList"></div>
+                <button class="record-btn" id="recordBtn">
+                    <i class="fas fa-microphone"></i> Record Audio
+                </button>
+                <div id="status" class="status"></div>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" accept=".rjml" style="display:none" />
+
+    <script>
+        (function() {
+            'use strict';
+
+            let notes = [];
+            let currentNoteId = null;
+            let currentRecordingNoteId = null;
+            let mediaRecorder = null;
+            let recordedChunks = [];
+            let currentAudio = null;
+            let saveTimeout = null;
+            let audioTimers = {};
+
+            const notesList = document.getElementById('notesList');
+            const overlay = document.getElementById('overlay');
+            const overlayTitle = document.getElementById('overlayTitle');
+            const noteText = document.getElementById('noteText');
+            const audioList = document.getElementById('audioList');
+            const recordBtn = document.getElementById('recordBtn');
+            const backBtn = document.getElementById('backBtn');
+            const overlayDelete = document.getElementById('overlayDelete');
+            const statusEl = document.getElementById('status');
+            const addNoteBtn = document.getElementById('addNote');
+            const saveIndicator = document.getElementById('saveIndicator');
+            const exportBtn = document.getElementById('exportBtn');
+            const importBtn = document.getElementById('importBtn');
+            const fileInput = document.getElementById('fileInput');
+
+            function generateId() {
+                return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+            }
+
+            function loadNotes() {
+                try {
+                    const stored = localStorage.getItem('voiceNotesPro');
+                    if (stored) {
+                        notes = JSON.parse(stored);
+                        for (const note of notes) {
+                            if (note.audios) {
+                                for (const audio of note.audios) {
+                                    if (audio.base64Data && !audio.blobUrl) {
+                                        audio.blobUrl = base64ToBlobUrl(audio.base64Data);
+                                    }
+                                }
+                            }
+                        }
+                        return true;
+                    }
+                } catch (e) {}
+                return false;
+            }
+
+            function saveNotes() {
+                const notesToSave = JSON.parse(JSON.stringify(notes));
+                for (const note of notesToSave) {
+                    if (note.audios) {
+                        for (const audio of note.audios) {
+                            delete audio.blobUrl;
+                        }
+                    }
+                }
+                localStorage.setItem('voiceNotesPro', JSON.stringify(notesToSave));
+                showSavedIndicator();
+            }
+
+            function base64ToBlobUrl(base64) {
+                const byteCharacters = atob(base64);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'audio/webm' });
+                return URL.createObjectURL(blob);
+            }
+
+            function blobToBase64(blob) {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const base64 = e.target.result.split(',')[1];
+                        resolve(base64);
+                    };
+                    reader.readAsDataURL(blob);
+                });
+            }
+
+            function getCurrentNote() {
+                return notes.find(n => n.id === currentNoteId);
+            }
+
+            function setStatus(msg, isError = false) {
+                statusEl.textContent = msg;
+                statusEl.style.color = isError ? '#ef4444' : '#94a3b8';
+                if (msg) {
+                    clearTimeout(statusEl._timeout);
+                    statusEl._timeout = setTimeout(() => { statusEl.textContent = ''; }, 4000);
+                }
+            }
+
+            function showSavedIndicator() {
+                saveIndicator.innerHTML = '<i class="fas fa-check-circle"></i> All changes saved';
+                saveIndicator.style.opacity = '1';
+                clearTimeout(saveIndicator._timeout);
+                saveIndicator._timeout = setTimeout(() => {
+                    saveIndicator.style.opacity = '0.5';
+                }, 2000);
+            }
+
+            function escapeHtml(text) {
+                if (!text) return '';
+                return text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+
+            function formatTime(seconds) {
+                if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            function getAudioDuration(blobUrl) {
+                return new Promise((resolve) => {
+                    const audio = new Audio(blobUrl);
+                    audio.addEventListener('loadedmetadata', function() {
+                        resolve(audio.duration);
+                    });
+                    audio.addEventListener('error', function() {
+                        resolve(0);
+                    });
+                    setTimeout(() => resolve(0), 3000);
+                });
+            }
+
+            function renderList() {
+                if (!notes || notes.length === 0) {
+                    notesList.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-pen-fancy"></i>
+                            <p>No notes yet. Create your first one!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                for (const note of notes) {
+                    const audioCount = (note.audios || []).length;
+                    const preview = note.text ? note.text.substring(0, 80) : '';
+                    html += `
+                        <div class="note-card" data-note-id="${note.id}">
+                            <div>
+                                <div class="note-card-title">${escapeHtml(note.title || 'Untitled')}</div>
+                                <div class="note-card-meta">
+                                    <i class="fas fa-microphone"></i> ${audioCount}
+                                    ${preview ? '· ' + escapeHtml(preview) + (note.text.length > 80 ? '...' : '') : ''}
+                                </div>
+                            </div>
+                            <div class="card-arrow"><i class="fas fa-chevron-right"></i></div>
+                        </div>
+                    `;
+                }
+                notesList.innerHTML = html;
+
+                notesList.querySelectorAll('.note-card').forEach(el => {
+                    el.addEventListener('click', function() {
+                        const id = this.dataset.noteId;
+                        openNote(id);
+                    });
+                });
+            }
+
+            function openNote(noteId) {
+                const note = notes.find(n => n.id === noteId);
+                if (!note) return;
+
+                currentNoteId = noteId;
+                overlayTitle.value = note.title || '';
+                noteText.value = note.text || '';
+                renderAudioList();
+                updateRecordButton();
+                overlay.classList.add('open');
+                document.body.style.overflow = 'hidden';
+                setStatus('');
+                showSavedIndicator();
+
+                setTimeout(() => noteText.focus(), 100);
+            }
+
+            function closeOverlay() {
+                saveCurrentNote();
+
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio = null;
+                }
+                if (currentRecordingNoteId) {
+                    stopRecording(true);
+                }
+                overlay.classList.remove('open');
+                document.body.style.overflow = '';
+                currentNoteId = null;
+                renderList();
+            }
+
+            function saveCurrentNote() {
+                const note = getCurrentNote();
+                if (note) {
+                    note.title = overlayTitle.value.trim() || 'Untitled';
+                    note.text = noteText.value;
+                    saveNotes();
+                }
+            }
+
+            noteText.addEventListener('input', function() {
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => {
+                    saveCurrentNote();
+                }, 500);
+            });
+
+            overlayTitle.addEventListener('input', function() {
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => {
+                    saveCurrentNote();
+                }, 300);
+            });
+
+            async function renderAudioList() {
+                const note = getCurrentNote();
+                if (!note) {
+                    audioList.innerHTML = '';
+                    return;
+                }
+
+                const audios = note.audios || [];
+                if (audios.length === 0) {
+                    audioList.innerHTML = `
+                        <div class="no-audio">
+                            <i class="fas fa-music"></i>
+                            No recordings yet
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                for (const audio of audios) {
+                    const name = audio.name || 'Audio';
+                    let duration = '0:00';
+                    if (audio.duration) {
+                        duration = formatTime(audio.duration);
+                    } else if (audio.blobUrl) {
+                        const dur = await getAudioDuration(audio.blobUrl);
+                        if (dur > 0) {
+                            audio.duration = dur;
+                            duration = formatTime(dur);
+                            saveNotes();
+                        }
+                    }
+
+                    html += `
+                        <div class="audio-item" data-audio-id="${audio.id}">
+                            <span class="audio-icon"><i class="fas fa-music"></i></span>
+                            <input class="audio-name" type="text" value="${escapeHtml(name)}" placeholder="Audio name" data-audio-id="${audio.id}" />
+                            <span class="audio-duration" id="duration-${audio.id}">${duration}</span>
+                            <div class="audio-actions">
+                                <button class="audio-play" data-audio-id="${audio.id}">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                                <button class="audio-delete" data-audio-id="${audio.id}">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+                audioList.innerHTML = html;
+
+                audioList.querySelectorAll('.audio-name').forEach(el => {
+                    el.addEventListener('change', handleAudioNameChange);
+                    el.addEventListener('blur', handleAudioNameChange);
+                });
+
+                audioList.querySelectorAll('.audio-play').forEach(el => {
+                    el.addEventListener('click', handlePlayAudio);
+                });
+
+                audioList.querySelectorAll('.audio-delete').forEach(el => {
+                    el.addEventListener('click', handleDeleteAudio);
+                });
+            }
+
+            function handleAudioNameChange(e) {
+                const input = e.target;
+                const audioId = input.closest('.audio-item').dataset.audioId;
+                const note = getCurrentNote();
+                if (!note) return;
+                const audio = note.audios.find(a => a.id === audioId);
+                if (audio) {
+                    audio.name = input.value.trim() || 'Audio';
+                    saveNotes();
+                }
+            }
+
+            function handleDeleteAudio(e) {
+                const btn = e.currentTarget;
+                const audioId = btn.closest('.audio-item').dataset.audioId;
+                const note = getCurrentNote();
+                if (!note) return;
+                if (!confirm('Delete this recording?')) return;
+                note.audios = note.audios.filter(a => a.id !== audioId);
+                saveNotes();
+                renderAudioList();
+                renderList();
+                setStatus('Recording deleted');
+            }
+
+            function handlePlayAudio(e) {
+                const btn = e.currentTarget;
+                const audioItem = btn.closest('.audio-item');
+                const audioId = audioItem.dataset.audioId;
+                const durationEl = audioItem.querySelector('.audio-duration');
+                const note = getCurrentNote();
+                if (!note) return;
+                const audioData = note.audios.find(a => a.id === audioId);
+                if (!audioData || !audioData.blobUrl) {
+                    setStatus('Audio not available - please re-record', true);
+                    return;
+                }
+
+                if (currentAudio && currentAudio.audioId === audioId && !currentAudio.paused) {
+                    currentAudio.pause();
+                    btn.innerHTML = '<i class="fas fa-play"></i>';
+                    btn.classList.remove('playing');
+                    if (audioTimers[audioId]) {
+                        clearInterval(audioTimers[audioId]);
+                        delete audioTimers[audioId];
+                    }
+                    if (audioData.duration) {
+                        durationEl.textContent = formatTime(audioData.duration);
+                    }
+                    currentAudio = null;
+                    return;
+                }
+
+                if (currentAudio) {
+                    currentAudio.pause();
+                    const prevBtn = document.querySelector(`.audio-play[data-audio-id="${currentAudio.audioId}"]`);
+                    if (prevBtn) {
+                        prevBtn.innerHTML = '<i class="fas fa-play"></i>';
+                        prevBtn.classList.remove('playing');
+                    }
+                    if (audioTimers[currentAudio.audioId]) {
+                        clearInterval(audioTimers[currentAudio.audioId]);
+                        delete audioTimers[currentAudio.audioId];
+                    }
+                    const prevDuration = document.querySelector(`#duration-${currentAudio.audioId}`);
+                    const prevAudio = note.audios.find(a => a.id === currentAudio.audioId);
+                    if (prevDuration && prevAudio) {
+                        prevDuration.textContent = formatTime(prevAudio.duration || 0);
+                    }
+                    currentAudio = null;
+                }
+
+                try {
+                    const audioEl = new Audio(audioData.blobUrl);
+                    audioEl.audioId = audioId;
+
+                    audioEl.onloadedmetadata = function() {
+                        if (!audioData.duration) {
+                            audioData.duration = audioEl.duration;
+                            saveNotes();
+                        }
+                        durationEl.textContent = formatTime(audioEl.duration);
+                    };
+
+                    audioEl.onended = function() {
+                        btn.innerHTML = '<i class="fas fa-play"></i>';
+                        btn.classList.remove('playing');
+                        if (audioTimers[audioId]) {
+                            clearInterval(audioTimers[audioId]);
+                            delete audioTimers[audioId];
+                        }
+                        if (audioData.duration) {
+                            durationEl.textContent = formatTime(audioData.duration);
+                        }
+                        if (currentAudio && currentAudio.audioId === audioId) currentAudio = null;
+                    };
+
+                    audioEl.onerror = function() {
+                        setStatus('Error playing audio', true);
+                        btn.innerHTML = '<i class="fas fa-play"></i>';
+                        btn.classList.remove('playing');
+                        if (audioTimers[audioId]) {
+                            clearInterval(audioTimers[audioId]);
+                            delete audioTimers[audioId];
+                        }
+                    };
+
+                    audioEl.play();
+                    btn.innerHTML = '<i class="fas fa-stop"></i>';
+                    btn.classList.add('playing');
+                    currentAudio = audioEl;
+                    setStatus('Playing...');
+
+                    let startTime = Date.now();
+                    let elapsed = 0;
+                    if (audioTimers[audioId]) {
+                        clearInterval(audioTimers[audioId]);
+                    }
+                    audioTimers[audioId] = setInterval(() => {
+                        if (!currentAudio || currentAudio.paused) {
+                            clearInterval(audioTimers[audioId]);
+                            delete audioTimers[audioId];
+                            return;
+                        }
+                        elapsed = (Date.now() - startTime) / 1000;
+                        const total = audioData.duration || 0;
+                        const remaining = Math.max(0, total - elapsed);
+                        durationEl.textContent = formatTime(remaining);
+                        if (elapsed >= total) {
+                            clearInterval(audioTimers[audioId]);
+                            delete audioTimers[audioId];
+                            durationEl.textContent = formatTime(total);
+                        }
+                    }, 100);
+
+                } catch (err) {
+                    setStatus('Error playing audio', true);
+                }
+            }
+
+            function updateRecordButton() {
+                const isRecording = (currentRecordingNoteId === currentNoteId);
+                if (isRecording) {
+                    recordBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
+                    recordBtn.classList.add('recording');
+                } else {
+                    recordBtn.innerHTML = '<i class="fas fa-microphone"></i> Record Audio';
+                    recordBtn.classList.remove('recording');
+                }
+            }
+
+            recordBtn.addEventListener('click', async function() {
+                const note = getCurrentNote();
+                if (!note) return;
+
+                if (currentRecordingNoteId === currentNoteId) {
+                    stopRecording(false);
+                    return;
+                }
+
+                if (currentRecordingNoteId) {
+                    stopRecording(true);
+                    await new Promise(r => setTimeout(r, 200));
+                }
+
+                startRecording();
+            });
+
+            async function startRecording() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+                    recordedChunks = [];
+
+                    mediaRecorder.ondataavailable = (event) => {
+                        if (event.data.size > 0) {
+                            recordedChunks.push(event.data);
+                        }
+                    };
+
+                    mediaRecorder.onstop = async () => {
+                        const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+                        const url = URL.createObjectURL(blob);
+                        const note = getCurrentNote();
+                        if (note) {
+                            const base64 = await blobToBase64(blob);
+                            const audioEl = new Audio(url);
+                            audioEl.onloadedmetadata = function() {
+                                const duration = audioEl.duration;
+                                const newAudio = {
+                                    id: generateId(),
+                                    name: `Recording ${note.audios.length + 1}`,
+                                    blobUrl: url,
+                                    base64Data: base64,
+                                    duration: duration || 0,
+                                };
+                                note.audios.push(newAudio);
+                                saveNotes();
+                                renderAudioList();
+                                renderList();
+                                setStatus('✅ Recording saved!');
+                            };
+                            audioEl.onerror = function() {
+                                const newAudio = {
+                                    id: generateId(),
+                                    name: `Recording ${note.audios.length + 1}`,
+                                    blobUrl: url,
+                                    base64Data: base64,
+                                    duration: 0,
+                                };
+                                note.audios.push(newAudio);
+                                saveNotes();
+                                renderAudioList();
+                                renderList();
+                                setStatus('✅ Recording saved!');
+                            };
+                            setTimeout(() => {
+                                if (note.audios.length > 0) {
+                                    const last = note.audios[note.audios.length - 1];
+                                    if (last.blobUrl === url && !last.duration) {
+                                        last.duration = 0;
+                                        saveNotes();
+                                        renderAudioList();
+                                        renderList();
+                                    }
+                                }
+                            }, 1000);
+                        }
+                        if (stream) stream.getTracks().forEach(t => t.stop());
+                        currentRecordingNoteId = null;
+                        mediaRecorder = null;
+                        updateRecordButton();
+                    };
+
+                    mediaRecorder.start();
+                    currentRecordingNoteId = currentNoteId;
+                    setStatus('🔴 Recording...');
+                    updateRecordButton();
+                } catch (err) {
+                    setStatus('❌ Microphone access denied', true);
+                    console.error(err);
+                    currentRecordingNoteId = null;
+                    mediaRecorder = null;
+                    updateRecordButton();
+                }
+            }
+
+            function stopRecording(silent = false) {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                    if (!silent) setStatus('⏹️ Stopped');
+                } else {
+                    if (mediaRecorder && mediaRecorder.stream) {
+                        mediaRecorder.stream.getTracks().forEach(t => t.stop());
+                    }
+                    currentRecordingNoteId = null;
+                    mediaRecorder = null;
+                    if (!silent) setStatus('Cancelled');
+                    updateRecordButton();
+                }
+            }
+
+            async function exportBackup() {
+                const exportData = JSON.parse(JSON.stringify(notes));
+                for (const note of exportData) {
+                    if (note.audios) {
+                        for (const audio of note.audios) {
+                            if (audio.blobUrl && !audio.base64Data) {
+                                try {
+                                    const response = await fetch(audio.blobUrl);
+                                    const blob = await response.blob();
+                                    audio.base64Data = await blobToBase64(blob);
+                                } catch (e) {
+                                    console.warn('Could not convert audio to base64', e);
+                                }
+                            }
+                            delete audio.blobUrl;
+                        }
+                    }
+                }
+
+                const data = JSON.stringify(exportData, null, 2);
+                const blob = new Blob([data], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `notes_backup_${new Date().toISOString().slice(0,10)}.rjml`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                setStatus('📦 Backup exported successfully!');
+            }
+
+            function importBackup(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (!Array.isArray(data)) {
+                            throw new Error('Invalid backup format');
+                        }
+
+                        for (const note of data) {
+                            if (!note.id || note.title === undefined || note.text === undefined || !Array.isArray(note
+                                    .audios)) {
+                                throw new Error('Invalid note structure');
+                            }
+                            for (const audio of note.audios) {
+                                if (!audio.id) {
+                                    throw new Error('Invalid audio data');
+                                }
+                                if (audio.base64Data) {
+                                    audio.blobUrl = base64ToBlobUrl(audio.base64Data);
+                                }
+                            }
+                        }
+
+                        if (!confirm(`Import ${data.length} notes? This will replace all current data.`)) return;
+
+                        notes = data;
+                        saveNotes();
+                        renderList();
+                        setStatus(`✅ Imported ${notes.length} notes successfully!`);
+                    } catch (err) {
+                        setStatus('❌ Invalid backup file: ' + err.message, true);
+                        console.error(err);
+                    }
+                };
+                reader.onerror = function() {
+                    setStatus('❌ Error reading file', true);
+                };
+                reader.readAsText(file);
+            }
+
+            backBtn.addEventListener('click', closeOverlay);
+
+            overlayDelete.addEventListener('click', function() {
+                const note = getCurrentNote();
+                if (!note) return;
+                if (!confirm(`Delete "${note.title || 'Untitled'}" and all its recordings?`)) return;
+                notes = notes.filter(n => n.id !== currentNoteId);
+                saveNotes();
+                closeOverlay();
+                setStatus('Note deleted');
+            });
+
+            addNoteBtn.addEventListener('click', function() {
+                const newNote = {
+                    id: generateId(),
+                    title: '',
+                    text: '',
+                    audios: [],
+                };
+                notes.push(newNote);
+                saveNotes();
+                renderList();
+                openNote(newNote.id);
+                setStatus('✨ New note created');
+                setTimeout(() => {
+                    noteText.focus();
+                }, 150);
+            });
+
+            exportBtn.addEventListener('click', exportBackup);
+
+            importBtn.addEventListener('click', function() {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', function(e) {
+                if (this.files && this.files.length > 0) {
+                    importBackup(this.files[0]);
+                }
+                this.value = '';
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && overlay.classList.contains('open')) {
+                    closeOverlay();
+                }
+                if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+                    if (overlay.classList.contains('open')) {
+                        e.preventDefault();
+                        saveCurrentNote();
+                        setStatus('💾 Saved!');
+                    }
+                }
+            });
+
+            function init() {
+                const hasStored = loadNotes();
+
+                if (!hasStored || notes.length === 0) {
+                    notes = [{
+                        id: generateId(),
+                        title: '',
+                        text: '',
+                        audios: [],
+                    }];
+                    saveNotes();
+                }
+
+                renderList();
+
+                if (notes.length === 1) {
+                    openNote(notes[0].id);
+                }
+            }
+
+            window.addEventListener('beforeunload', function() {
+                saveCurrentNote();
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
+                for (const id in audioTimers) {
+                    clearInterval(audioTimers[id]);
+                }
+            });
+
+            init();
+
+        })();
+    </script>
+
+</body>
+</html>
